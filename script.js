@@ -71,8 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    let code="";
     // --- MAIN PROCESS ---
-    function handleFile(file) {
+    async function handleFile(file) {
         // ROBUST VALIDATION: Check Name OR Mime Type
         const fileName = file.name.toLowerCase();
         const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
@@ -89,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log("File Accepted:", file.name);
 
-        // Update UI
+        // Update UI immediately
         if (fileNameDisplay) fileNameDisplay.innerText = file.name;
 
         // Hide Landing, Show Loading
@@ -99,8 +100,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // Scroll to top to ensure loading screen is seen
         window.scrollTo(0, 0);
 
-        // Start Sequence
+        // Start terminal sequence immediately
         runTerminalSequence(file.name);
+
+        // Process backend in parallel (don't wait for it)
+        const form = new FormData();
+        form.append('file', file);
+        form.append('filename', fileName);
+       
+            const res = await fetch("http://localhost:3000/file", {
+                method: "POST",
+                body: form
+            });
+            
+           
+            
+            code = await res.text();
+            console.log("Backend Response Received", code);
+            localStorage.setItem('backendCode', code);
+            
+       
     }
 
     function runTerminalSequence(filename) {
@@ -125,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const interval = setInterval(() => {
             if (index >= logs.length) {
                 clearInterval(interval);
-                setTimeout(revealEditor, 800);
+                setTimeout(revealEditor, 13000);
                 return;
             }
 
@@ -149,8 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function revealEditor() {
-        // viewLoading.classList.add('hidden');
-        // viewEditor.classList.remove('hidden');
+       
         window.location.href = 'viewer.html';
     }
 
